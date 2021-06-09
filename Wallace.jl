@@ -35,7 +35,27 @@ function wallacei(A, B)::Float32
     1.0 - simpsons(B)
 end
 
-function mismatch_matrix(A, B):: NamedTuple{(:a, :b, :c, :d), NTuple{4, Int}}
+function adjrand(A, B)::Float32
+
+    mm = mismatch_matrix(A, B)
+
+    nis = sum(mm.rowsums .^ 2)
+    njs = sum(mm.colsums .^ 2)
+
+    nc =
+        (
+            mm.n * (mm.n^2 + 1) - (mm.n + 1) * nis - (mm.n + 1) * njs +
+            2 * (nis * njs) / mm.n
+        ) / (2 * (mm.n - 1))
+
+    max((mm.a + mm.d - nc) / (mm.a + mm.b + mm.c + mm.d - nc), 0.0)
+
+end
+
+function mismatch_matrix(
+    A,
+    B,
+)
 
     # contingency table
     # needs the argument reversal to match Comparing Partitions
@@ -48,9 +68,9 @@ function mismatch_matrix(A, B):: NamedTuple{(:a, :b, :c, :d), NTuple{4, Int}}
 
     a::Int = sum((ct .* (ct .- 1) / 2))
     a′::Int = sum((colsums .* (colsums .- 1) / 2))
-    b::Int = a′- a
+    b::Int = a′ - a
     c::Int = sum((rowsums .* (rowsums .- 1) / 2)) - a
-    d::Int = (n * (n  - 1) / 2) - a′ - c
+    d::Int = (n * (n - 1) / 2) - a′ - c
 
-    (a = a, b = b, c = c, d = d)
+    (a = a, b = b, c = c, d = d, n = n, colsums = colsums, rowsums = rowsums)
 end
